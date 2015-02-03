@@ -5,8 +5,14 @@
  */
  
  // VARIABLES
- float boardInset = 50;
- float cellSize;
+boolean debug = true;
+
+boolean isBoardSetup = false;
+float boardInset = 50;
+float cellSize;
+ 
+int[] gameState = new int[9];
+String[] cellLetters = {"R", "T", "Y", "F", "G", "H", "V", "B", "N"};
  
  // SETUP
  
@@ -19,19 +25,49 @@
  void draw() {
   background(255);
   
-  setupBoard();
- }
- 
-void setupBoard() {
+  if (!isBoardSetup) {
+    setupBoard();
+  }
+  drawBoard();
   
-  // draw board
-  stroke(0);
+  if (debug) {
+    showGameState();
+ }
+}
+ 
+void setupBoard() {   
+  // set up array to store game state
+ for (int i = 0; i < 9; i++) {
+   gameState[i] = 0;
+ }
+ isBoardSetup = true;
+}
+
+void drawBoard() {
+    // draw board
+  int i = 0;
   for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
-    rect(boardInset + cellSize*j, boardInset + cellSize*k, cellSize, cellSize);
+      // draw cell
+      stroke(0);
+      noFill();
+      float xPos = boardInset + cellSize*j;
+      float yPos = boardInset + cellSize*k;
+      rect(xPos, yPos, cellSize, cellSize);
+      //draw letter
+      textSize(14);
+      fill(0);
+      textAlign(LEFT, TOP);
+      text(cellLetters[i], xPos + 5, yPos);
+      i++;
     }
   }
-   
-  // set up array to store game state
- 
+}
+
+void showGameState() {
+  textSize(20);
+  fill(0);
+  textAlign(LEFT, TOP);
+  text("Player: "+"1", 20, 15);
+//  printArray(gameState);
 }
