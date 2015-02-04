@@ -5,7 +5,7 @@
  */
 
 // VARIABLES
-boolean debug = false;
+boolean debug = true;
 
 boolean isGameSetup;
 float boardInset = 80;
@@ -22,6 +22,7 @@ int turnsTaken;
 boolean isTurnTaken;
 
 // MAIN FUNCTIONS
+//______________________________________________________
 void setup() {
   size(500, 500);
 
@@ -38,9 +39,14 @@ void draw() {
   }
   drawBoard();
   showGameStatus();
+  
+//  if (currentPlayer < 0) { // AI is player O
+//     takeTurnAI(); 
+//  }
 }
 
 // START OR RESET GAME
+//______________________________________________________
 void setupGame() {   
   // set up array to store game state
   for (int i = 0; i < 9; i++) {
@@ -55,6 +61,7 @@ void setupGame() {
 }
 
 // DISPLAY INFO
+//______________________________________________________
 void drawBoard() {
   // draw board
   int i = 0;
@@ -116,28 +123,31 @@ void showGameStatus() {
 }
 
 // GAME LOGIC
-void placeMarkInCell(int cell) {
+//______________________________________________________
+boolean placeMarkInCell(int cell) {
   if (cell > -1 && cell < 9) { 
     if (gameState[cell] == 0) { // cell not yet taken
       gameState[cell] = currentPlayer;
       isTurnTaken = true;
       turnsTaken++;
 
-      if (turnsTaken > 4) { // no possible win unless player 1 has taken at least 3 turns
-        gameOverCheck();
-      }
-      if (!isGameOver) endTurn();
     }
   }
 
   if (debug) {
-    printArray(gameState);
+//    printArray(gameState);
   }
+  return isTurnTaken; 
 }
 
 void endTurn() {
-  currentPlayer = currentPlayer * -1;
-  isTurnTaken = false;
+  if (turnsTaken > 4) { // no possible win unless player 1 has taken at least 3 turns
+    gameOverCheck();
+  }
+  if (!isGameOver) {
+    currentPlayer = currentPlayer * -1;
+    isTurnTaken = false;
+  }
 }
 
 void gameOverCheck() {
@@ -175,6 +185,7 @@ boolean madeWinningMove() {
 }
 
 // PLAYER INPUTS
+//______________________________________________________
 void keyPressed() {
   if (isGameOver) {
     // can only start new game when prev game ends
@@ -190,6 +201,8 @@ void keyPressed() {
     // player must make a move
     if (key == 'q') { // for testing only
       isGameOver = true;
+    } else if (key == 'a') { // for testing only
+      takeTurnAI();
     } else {
       int cell = cellLetters.indexOf(key); 
       if (debug) println(cell);
@@ -201,4 +214,18 @@ void keyPressed() {
 }
 
 // AI LOGIC
+//______________________________________________________
+void takeTurnAI() {
+  // completely random and awful AI implementation
+   int cell = int(random(9));
+   if (debug) println(cell);
+   
+   boolean success = placeMarkInCell(cell);
+   if (debug) println(success);
 
+   if (success) {
+      endTurn(); 
+   } else {
+      takeTurnAI(); 
+   }
+}
