@@ -213,7 +213,7 @@ void keyPressed() {
       takeTurnAI();
     } else {
       int cell = cellLetters.indexOf(key); 
-      if (debug) println(cell);
+      if (debug) println("Human chooses cell "+cell);
       
       // -1 if key pressed was not in cellLetters
       if (cell > -1) {
@@ -226,16 +226,43 @@ void keyPressed() {
 // AI LOGIC
 //______________________________________________________
 void takeTurnAI() {
-  // completely random and awful AI implementation
-   int cell = int(random(9));
-   if (debug) println(cell);
+   int cell = chooseCellAI();
+   if (debug) println("AI chooses cell "+cell);
    
    boolean success = placeMarkInCell(cell);
    if (debug) println(success);
 
-   if (success) {
+   if (success) { // should be able to remove once AI is smarter
       endTurn(); 
    } else {
       takeTurnAI(); 
    }
+}
+
+int chooseRandomCellAI() {
+  int cell = int(random(9));
+  return cell;
+}
+
+int chooseCellAI() {  
+  // first, create array containing indices of open cells
+  IntList openCells = getOpenCells();
+  openCells.shuffle();
+  int cell = openCells.get(0);
+   
+  return cell;
+}
+
+IntList getOpenCells() {
+  IntList openCells = new IntList();
+  
+   for (int i = 0; i < 9; i++) {
+      if (gameState[i] == 0) {
+        openCells.append(i);        
+      }
+   }
+   if (debug) {
+      println("Open cells: " + openCells.size()); 
+   }
+   return openCells;
 }
