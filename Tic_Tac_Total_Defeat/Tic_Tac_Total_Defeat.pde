@@ -21,7 +21,7 @@ String currentPlayerString;
 int turnsTaken;
 boolean isTurnTaken;
 
-// SETUP
+// MAIN FUNCTIONS
 void setup() {
   size(500, 500);
 
@@ -40,6 +40,7 @@ void draw() {
   showGameStatus();
 }
 
+// START OR RESET GAME
 void setupGame() {   
   // set up array to store game state
   for (int i = 0; i < 9; i++) {
@@ -53,6 +54,7 @@ void setupGame() {
   theWinner = "Tie - no one";
 }
 
+// DISPLAY INFO
 void drawBoard() {
   // draw board
   int i = 0;
@@ -66,14 +68,15 @@ void drawBoard() {
       float yPos = boardInset + cellSize*k;
       rect(xPos, yPos, cellSize, cellSize);
 
-      //draw letter
-      if (gameState[i] == 0) { // cell not yet taken
+      //draw letter or player mark
+      if (gameState[i] == 0) { 
+        // cell not yet taken - show which key to claim it
         fill(0);
         textSize(20);
         textAlign(LEFT, TOP);
         text(cellLetters.substring(i, i+1).toUpperCase(), xPos + 5, yPos + 2);
       } else {
-        // show the mark of whoever has is
+        // show the mark of player who claimed cell
         textSize(40);
         textAlign(CENTER, CENTER);
         if  (gameState[i] > 0) { // player X
@@ -112,11 +115,9 @@ void showGameStatus() {
   }
 }
 
-void placeMark(char letter) {
-  int cell = cellLetters.indexOf(letter); 
-  if (debug) println(cell);
-
-  if (cell >= 0) { // -1 if not in cellLetters
+// GAME LOGIC
+void placeMarkInCell(int cell) {
+  if (cell >= 0) { 
     if (gameState[cell] == 0) { // cell not yet taken
       gameState[cell] = currentPlayer;
       isTurnTaken = true;
@@ -140,7 +141,6 @@ void endTurn() {
 }
 
 void gameOverCheck() {
-
   // check possible winning combos
   if (gameState[4]*currentPlayer == 1) { 
     if ((gameState[0]*currentPlayer == 1 && gameState[8]*currentPlayer == 1) ||
@@ -167,6 +167,7 @@ void gameOverCheck() {
   }
 }
 
+// PLAYER INPUTS
 void keyPressed() {
   if (isGameOver) {
     // can only start new game when prev game ends
@@ -183,7 +184,11 @@ void keyPressed() {
     if (key == 'q') { // for testing only
       isGameOver = true;
     } else {
-      placeMark(key);
+      int cell = cellLetters.indexOf(key); 
+      if (debug) println(cell);
+      
+      // -1 if key pressed was not in cellLetters
+      if (cell > -1) placeMarkInCell(cell);
     }
   }
 }
