@@ -141,33 +141,37 @@ void endTurn() {
 }
 
 void gameOverCheck() {
+  if (madeWinningMove()) {
+     theWinner = currentPlayerString;
+     isGameOver = true;
+  } else if (turnsTaken > 8 ) { // board full, tie game
+      isGameOver = true;
+  }
+}
+
+boolean madeWinningMove() {
   // check possible winning combos
   if (gameState[4]*currentPlayer == 1) { 
     if ((gameState[0]*currentPlayer == 1 && gameState[8]*currentPlayer == 1) ||
       (gameState[1]*currentPlayer == 1 && gameState[7]*currentPlayer == 1) ||
       (gameState[2]*currentPlayer == 1 && gameState[6]*currentPlayer == 1) ||
       (gameState[3]*currentPlayer == 1 && gameState[5]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
+      return true;
     }
   } 
   if (gameState[0]*currentPlayer == 1) {
     if ((gameState[1]*currentPlayer == 1 && gameState[2]*currentPlayer == 1) ||
       (gameState[3]*currentPlayer == 1 && gameState[6]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
+      return true;
     }
   } 
   if (gameState[8]*currentPlayer == 1) {
     if ((gameState[2]*currentPlayer == 1 && gameState[5]*currentPlayer == 1) ||
       (gameState[6]*currentPlayer == 1 && gameState[7]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
+      return true;
     }
-  } 
-  if (turnsTaken > 8) { // board full, tie game
-    isGameOver = true;
   }
+  return false;
 }
 
 // PLAYER INPUTS
@@ -195,4 +199,6 @@ void keyPressed() {
     }
   }
 }
+
+// AI LOGIC
 
