@@ -6,6 +6,7 @@
 
 // VARIABLES
 boolean debug = true;
+boolean debugGameState = false;
 
 boolean isGameSetup;
 float boardInset = 80;
@@ -20,6 +21,10 @@ int currentPlayer;
 String currentPlayerString;
 int turnsTaken;
 boolean isTurnTaken;
+
+int turnDelay = 1000; // in milliseconds
+int turnStart;
+
 
 // MAIN FUNCTIONS
 //______________________________________________________
@@ -40,9 +45,11 @@ void draw() {
   drawBoard();
   showGameStatus();
   
-//  if (currentPlayer < 0) { // AI is player O
-//     takeTurnAI(); 
-//  }
+  if (!isGameOver && currentPlayer < 0) { // AI is player O
+     if (millis() - turnStart > turnDelay) {
+       takeTurnAI(); 
+     }
+  }
 }
 
 // START OR RESET GAME
@@ -58,6 +65,7 @@ void setupGame() {
   isGameSetup = true;
   isGameOver = false;
   theWinner = "Tie - no one";
+  turnStart = millis();
 }
 
 // DISPLAY INFO
@@ -130,12 +138,11 @@ boolean placeMarkInCell(int cell) {
       gameState[cell] = currentPlayer;
       isTurnTaken = true;
       turnsTaken++;
-
     }
   }
 
-  if (debug) {
-//    printArray(gameState);
+  if (debugGameState) {
+    printArray(gameState);
   }
   return isTurnTaken; 
 }
@@ -147,6 +154,7 @@ void endTurn() {
   if (!isGameOver) {
     currentPlayer = currentPlayer * -1;
     isTurnTaken = false;
+    turnStart = millis();
   }
 }
 
@@ -208,7 +216,9 @@ void keyPressed() {
       if (debug) println(cell);
       
       // -1 if key pressed was not in cellLetters
-      if (cell > -1) placeMarkInCell(cell);
+      if (cell > -1) {
+        if (placeMarkInCell(cell)) endTurn();
+      }
     }
   }
 }
