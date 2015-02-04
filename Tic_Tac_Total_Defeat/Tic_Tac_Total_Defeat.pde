@@ -117,7 +117,7 @@ void showGameStatus() {
 
 // GAME LOGIC
 void placeMarkInCell(int cell) {
-  if (cell >= 0) { 
+  if (cell > -1 && cell < 9) { 
     if (gameState[cell] == 0) { // cell not yet taken
       gameState[cell] = currentPlayer;
       isTurnTaken = true;
@@ -162,7 +162,7 @@ void gameOverCheck() {
       theWinner = currentPlayerString;
       isGameOver = true;
     }
-  } else if (turnsTaken > 8) { // board full, tie
+  } else if (turnsTaken > 8) { // board full, tie game
     isGameOver = true;
   }
 }
