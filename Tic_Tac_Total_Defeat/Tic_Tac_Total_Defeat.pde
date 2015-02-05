@@ -45,11 +45,11 @@ void draw() {
   drawBoard();
   showGameStatus();
   
-  if (!isGameOver && currentPlayer < 0) { // AI is player O
-     if (millis() - turnStart > turnDelay) {
-       takeTurnAI(); 
-     }
-  }
+//  if (!isGameOver && currentPlayer < 0) { // AI is player 'O'
+//     if (millis() - turnStart > turnDelay) {
+//       takeTurnAI(); 
+//     }
+//  }
 }
 
 // START OR RESET GAME
@@ -133,6 +133,7 @@ void showGameStatus() {
 // GAME LOGIC
 //______________________________________________________
 boolean placeMarkInCell(int cell) {
+  if (debug) println("Placing...");
   if (cell > -1 && cell < 9) { 
     if (gameState[cell] == 0) { // cell not yet taken
       gameState[cell] = currentPlayer;
@@ -159,7 +160,7 @@ void endTurn() {
 }
 
 void gameOverCheck() {
-  if (madeWinningMove()) {
+  if (madeWinningMove(gameState, currentPlayer)) {
      theWinner = currentPlayerString;
      isGameOver = true;
   } else if (turnsTaken > 8 ) { // board full, tie game
@@ -167,25 +168,25 @@ void gameOverCheck() {
   }
 }
 
-boolean madeWinningMove() {
+boolean madeWinningMove(int[] theGameState, int player) {
   // check possible winning combos
-  if (gameState[4]*currentPlayer == 1) { 
-    if ((gameState[0]*currentPlayer == 1 && gameState[8]*currentPlayer == 1) ||
-      (gameState[1]*currentPlayer == 1 && gameState[7]*currentPlayer == 1) ||
-      (gameState[2]*currentPlayer == 1 && gameState[6]*currentPlayer == 1) ||
-      (gameState[3]*currentPlayer == 1 && gameState[5]*currentPlayer == 1)) {
+  if (theGameState[4]*player == 1) { 
+    if ((theGameState[0]*player == 1 && theGameState[8]*player == 1) ||
+      (theGameState[1]*player == 1 && theGameState[7]*player == 1) ||
+      (theGameState[2]*player == 1 && theGameState[6]*player == 1) ||
+      (theGameState[3]*player == 1 && theGameState[5]*player == 1)) {
       return true;
     }
   } 
-  if (gameState[0]*currentPlayer == 1) {
-    if ((gameState[1]*currentPlayer == 1 && gameState[2]*currentPlayer == 1) ||
-      (gameState[3]*currentPlayer == 1 && gameState[6]*currentPlayer == 1)) {
+  if (theGameState[0]*player == 1) {
+    if ((theGameState[1]*player == 1 && theGameState[2]*player == 1) ||
+      (theGameState[3]*player == 1 && theGameState[6]*player == 1)) {
       return true;
     }
   } 
-  if (gameState[8]*currentPlayer == 1) {
-    if ((gameState[2]*currentPlayer == 1 && gameState[5]*currentPlayer == 1) ||
-      (gameState[6]*currentPlayer == 1 && gameState[7]*currentPlayer == 1)) {
+  if (theGameState[8]*player == 1) {
+    if ((theGameState[2]*player == 1 && theGameState[5]*player == 1) ||
+      (theGameState[6]*player == 1 && theGameState[7]*player == 1)) {
       return true;
     }
   }
@@ -233,31 +234,58 @@ void takeTurnAI() {
    if (debug) println(success);
 
    if (success) { // should be able to remove once AI is smarter
-      endTurn(); 
+//      endTurn(); 
    } else {
-      takeTurnAI(); 
+//      takeTurnAI(); 
    }
 }
 
-int chooseRandomCellAI() {
-  int cell = int(random(9));
-  return cell;
-}
-
 int chooseCellAI() {  
-  // first, create array containing indices of open cells
-  IntList openCells = getOpenCells();
-  openCells.shuffle();
-  int cell = openCells.get(0);
-   
+  int cell = chooseBestCell(gameState, currentPlayer);
   return cell;
 }
 
-IntList getOpenCells() {
+//int chooseRandomCellAI() {
+//  int cell = int(random(9));
+//  return cell;
+//}
+
+int chooseFromOpenCells() {
+  IntList openCells = getOpenCells(gameState);
+  openCells.shuffle();
+  return openCells.get(0);
+}
+
+int chooseBestCell(int[] theGameState, int player) {
+  IntList openCells = getOpenCells(theGameState);
+
+  if (debug) {
+    println("Current state:");
+    printArray(theGameState);
+    printArray(openCells);
+  }
+
+  for (int i = 0; i < openCells.size(); i++) {
+    int[] newGameState = new int[9];
+    arrayCopy(theGameState, newGameState);
+    int testCell = openCells.get(i);
+    
+    newGameState[testCell] = player;
+    if (debug) {
+      println("If AI takes cell "+testCell+"...");
+      printArray(newGameState); 
+    }
+    if (madeWinningMove(newGameState, player)) {
+       return i; 
+    } 
+  }  
+  return chooseFromOpenCells();
+}
+
+IntList getOpenCells(int[] theGameState) {
   IntList openCells = new IntList();
-  
-   for (int i = 0; i < 9; i++) {
-      if (gameState[i] == 0) {
+   for (int i = 0; i < theGameState.length; i++) {
+      if (theGameState[i] == 0) {
         openCells.append(i);        
       }
    }
