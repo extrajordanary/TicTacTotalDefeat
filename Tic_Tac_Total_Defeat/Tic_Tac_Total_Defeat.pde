@@ -246,8 +246,17 @@ int chooseCellAI() {
 }
 
 int chooseBestCell(int[] theGameState, int player) {
+  // returns index of cell's position in gameState array
+  
+  // see which cells are still available
   IntList openCells = getOpenCells(theGameState);
-
+  
+  // get array of best expected game outcomes
+  
+  // get index of best outcome
+  
+  // return cell number which produces best outcome
+  
   if (debug) {
     println("Current state:");
     printArray(theGameState);
@@ -269,6 +278,61 @@ int chooseBestCell(int[] theGameState, int player) {
     }
   }  
   return chooseFromOpenCells();
+}
+
+int getBestOutcome(int[] theGameState, int player) {
+  // return value representing best game outcome for the player
+  int bestOutcome;
+  
+  // see which cells are still available
+  IntList openCells = getOpenCells(theGameState);
+  
+  if (openCells.size() == 1) {
+    // if only one option, return value for win or tie
+    int[] newGameState = new int[9];
+    arrayCopy(theGameState, newGameState);
+    int testCell = openCells.get(0);
+    newGameState[testCell] = player;
+      
+    if (madeWinningMove(newGameState,player)) {
+      bestOutcome = 1 * player;
+    } else {
+      bestOutcome = 0;
+    }
+    return bestOutcome;
+  
+  } else {
+  // else, get best outcome for each possible move and add values to IntList
+    IntList bestOutcomes = new IntList();
+    for (int i = 0; i < openCells.size(); i++) {
+      // create newGameState
+      int[] newGameState = new int[9];
+      arrayCopy(theGameState, newGameState);
+      int testCell = openCells.get(i);
+      newGameState[testCell] = player;
+      
+      // check if newGameState is win condition
+      int best;
+      if (madeWinningMove(newGameState,player)) {
+        // if win, set outcome value to add to array
+        best = 1 * player;
+      } else {
+        // recursive call, passed to next player
+        int nextPlayer = player * -1;
+        best = getBestOutcome(newGameState,nextPlayer);
+      }
+      bestOutcomes.append(best); 
+    }
+    
+    // return the best of the outcomes from the IntList
+    if (player > 0) { // player X
+      bestOutcome = max(bestOutcomes);
+    } else {
+      bestOutcome = min(bestOutcomes);
+    }
+    return bestOutcome;
+  }
+
 }
 
 int chooseFromOpenCells() {
