@@ -252,32 +252,60 @@ int chooseBestCell(int[] theGameState, int player) {
   IntList openCells = getOpenCells(theGameState);
   
   // get array of best expected game outcomes
-  
+  IntList bestOutcomes = new IntList();
+    for (int i = 0; i < openCells.size(); i++) {
+      // create newGameState
+      int[] newGameState = new int[9];
+      arrayCopy(theGameState, newGameState);
+      int testCell = openCells.get(i);
+      newGameState[testCell] = player;
+      
+      // check if newGameState is win condition
+      if (madeWinningMove(newGameState,player)) {
+        // if win, return testCell
+        return testCell;
+      } else {
+        // recursive call, passed to next player
+        int nextPlayer = player * -1;
+        int best = getBestOutcome(newGameState,nextPlayer);
+        bestOutcomes.append(best);
+      }
+    }
+    
+    // return the best of the outcomes from the IntList
+    if (player > 0) { // player X, positive 1
+      bestOutcome = max(bestOutcomes);
+    } else {
+      bestOutcome = min(bestOutcomes);
+    }
+    
   // get index of best outcome
+  int bestCell = bestOutcomes.indexOf(bestOutcome);
   
   // return cell number which produces best outcome
+  return bestCell;
   
-  if (debug) {
-    println("Current state:");
-    printArray(theGameState);
-    printArray(openCells);
-  }
-
-  for (int i = 0; i < openCells.size(); i++) {
-    int[] newGameState = new int[9];
-    arrayCopy(theGameState, newGameState);
-    int testCell = openCells.get(i);
-    
-    newGameState[testCell] = player;
-    if (debug) {
-      println("If AI takes cell "+testCell+"...");
-      printArray(newGameState); 
-    }
-    if (madeWinningMove(newGameState, player)) {
-       return testCell; 
-    }
-  }  
-  return chooseFromOpenCells();
+//  if (debug) {
+//    println("Current state:");
+//    printArray(theGameState);
+//    printArray(openCells);
+//  }
+//
+//  for (int i = 0; i < openCells.size(); i++) {
+//    int[] newGameState = new int[9];
+//    arrayCopy(theGameState, newGameState);
+//    int testCell = openCells.get(i);
+//    
+//    newGameState[testCell] = player;
+//    if (debug) {
+//      println("If AI takes cell "+testCell+"...");
+//      printArray(newGameState); 
+//    }
+//    if (madeWinningMove(newGameState, player)) {
+//       return testCell; 
+//    }
+//  }  
+//  return chooseFromOpenCells();
 }
 
 int getBestOutcome(int[] theGameState, int player) {
