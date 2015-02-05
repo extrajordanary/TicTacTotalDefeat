@@ -1,7 +1,7 @@
 // AI LOGIC
 //______________________________________________________
 void takeTurnAI() {
-  int cell = chooseCellAI();
+  int cell = chooseBestCell(gameState, currentPlayer);
   if (debug) println("AI chooses cell "+cell);
 
   boolean success = placeMarkInCell(cell);
@@ -12,11 +12,6 @@ void takeTurnAI() {
   } else { // logic error resulting in failed cell placement
     println("Silly AI needs another try, press 'A'.");
   }
-}
-
-int chooseCellAI() {  
-  int cell = chooseBestCell(gameState, currentPlayer);
-  return cell;
 }
 
 int chooseBestCell(int[] theGameState, int player) {
@@ -118,12 +113,6 @@ int getBestOutcome(int[] theGameState, int player) {
     return bestOutcome;
   }
 }
-
-//int chooseFromOpenCells() {
-//  IntList openCells = getOpenCells(gameState);
-//  openCells.shuffle();
-//  return openCells.get(0);
-//}
 
 IntList getOpenCells(int[] theGameState) {
   IntList openCells = new IntList();
