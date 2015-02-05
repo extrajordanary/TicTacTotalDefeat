@@ -275,9 +275,9 @@ int chooseBestCell(int[] theGameState, int player) {
     // return the best of the outcomes from the IntList
     int bestOutcome;
     if (player > 0) { // player X, positive 1
-      bestOutcome = getMax(bestOutcomes);
+      bestOutcome = bestOutcomes.max();
     } else {
-      bestOutcome = getMin(bestOutcomes);
+      bestOutcome = bestOutcomes.min();
     }
     
   // get index of best outcome
@@ -355,9 +355,9 @@ int getBestOutcome(int[] theGameState, int player) {
     
     // return the best of the outcomes from the IntList
     if (player > 0) { // player X
-      bestOutcome = getMax(bestOutcomes);
+      bestOutcome = bestOutcomes.max();
     } else {
-      bestOutcome = getMin(bestOutcomes);
+      bestOutcome = bestOutcomes.min();
     }
     return bestOutcome;
   }
@@ -383,23 +383,3 @@ IntList getOpenCells(int[] theGameState) {
    return openCells;
 }
 
-// HELPER FUNCTIONS
-int getMax(ArrayList list){
-    int max = -1;
-    for(int i=0; i<list.size(); i++){
-        if(list.get(i) > max){
-            max = list.get(i);
-        }
-    }
-    return max;
-}
-
-int getMin(ArrayList list){
-    int min = 1;
-    for(int i=0; i<list.size(); i++){
-        if(list.get(i) < min){
-            min = list.get(i);
-        }
-    }
-    return min;
-}
