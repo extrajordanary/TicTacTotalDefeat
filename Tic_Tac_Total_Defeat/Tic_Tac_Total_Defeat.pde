@@ -8,6 +8,9 @@
 boolean debug = true;
 boolean debugGameState = false;
 
+boolean autoEndTurn = true;
+boolean playAgainstAI = true;
+
 boolean isGameSetup;
 float boardInset = 80;
 float cellSize;
@@ -46,7 +49,7 @@ void draw() {
   showGameStatus();
 
   // If it's the AI's turn make a move
-  if (!isGameOver && currentPlayer < 0) { 
+  if (playAgainstAI && !isGameOver && currentPlayer < 0) { 
     if (millis() - turnStart > turnDelay) {
       takeTurnAI();
     }
@@ -110,7 +113,7 @@ void showGameStatus() {
     }
     if (!isTurnTaken) {
       text(currentPlayerString+"'s turn", 20, 15);
-    } else {
+    } else { // not used when using automatic end turn
       text("Press Spacebar to change players.", 20, 15);
     }
   }
@@ -141,7 +144,8 @@ void keyPressed() {
 
       // -1 if key pressed was not in cellLetters
       if (cell > -1) {
-        if (placeMarkInCell(cell)) endTurn();
+        placeMarkInCell(cell);
+        if (autoEndTurn && isTurnTaken) endTurn();
       }
     }
   }
