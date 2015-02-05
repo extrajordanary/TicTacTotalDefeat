@@ -281,7 +281,12 @@ int chooseBestCell(int[] theGameState, int player) {
     }
     
   // get index of best outcome
-  int bestCell = bestOutcomes.indexOf(bestOutcome);
+  int bestCell = openCells.get(0);
+  for (int i = 0; i < bestOutcomes.size(); i ++) {
+    if (bestOutcomes.get(i) == bestOutcome) {
+      bestCell = openCells.get(i);
+    }
+  }
   
   // return cell number which produces best outcome
   return bestCell;
@@ -382,4 +387,3 @@ IntList getOpenCells(int[] theGameState) {
    }
    return openCells;
 }
-
