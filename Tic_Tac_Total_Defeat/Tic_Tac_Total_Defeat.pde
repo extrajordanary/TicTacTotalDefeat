@@ -234,7 +234,7 @@ void takeTurnAI() {
    if (debug) println(success);
 
    if (success) { // should be able to remove once AI is smarter
-//      endTurn(); 
+      endTurn(); 
    } else {
 //      takeTurnAI(); 
    }
@@ -243,17 +243,6 @@ void takeTurnAI() {
 int chooseCellAI() {  
   int cell = chooseBestCell(gameState, currentPlayer);
   return cell;
-}
-
-//int chooseRandomCellAI() {
-//  int cell = int(random(9));
-//  return cell;
-//}
-
-int chooseFromOpenCells() {
-  IntList openCells = getOpenCells(gameState);
-  openCells.shuffle();
-  return openCells.get(0);
 }
 
 int chooseBestCell(int[] theGameState, int player) {
@@ -276,10 +265,16 @@ int chooseBestCell(int[] theGameState, int player) {
       printArray(newGameState); 
     }
     if (madeWinningMove(newGameState, player)) {
-       return i; 
-    } 
+       return testCell; 
+    }
   }  
   return chooseFromOpenCells();
+}
+
+int chooseFromOpenCells() {
+  IntList openCells = getOpenCells(gameState);
+  openCells.shuffle();
+  return openCells.get(0);
 }
 
 IntList getOpenCells(int[] theGameState) {
