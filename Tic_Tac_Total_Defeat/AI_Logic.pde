@@ -81,11 +81,47 @@ int getBestOutcome(int[] theGameState, int player) {
       bestOutcome = 0;
     }
     return bestOutcome;
+    
   } else {
     // else, get best outcome for each possible move and add values to IntList
-    IntList bestOutcomes = new IntList();
-    for (int i = 0; i < openCells.size(); i++) {
-      // create newGameState
+    IntList bestOutcomes = getBestOutcomesArray(theGameState, player);
+    
+//    for (int i = 0; i < openCells.size(); i++) {
+//      // create newGameState
+//      int[] newGameState = new int[9];
+//      arrayCopy(theGameState, newGameState);
+//      int testCell = openCells.get(i);
+//      newGameState[testCell] = player;
+//
+//      // check if newGameState is win condition
+//      int best;
+//      if (madeWinningMove(newGameState, player)) {
+//        // if win, set outcome value to add to array
+//        best = 1 * player;
+//      } else {
+//        // recursive call, passed to next player
+//        int nextPlayer = player * -1;
+//        best = getBestOutcome(newGameState, nextPlayer);
+//      }
+//      bestOutcomes.append(best);
+//    }
+
+    // return the best of the outcomes from the IntList
+    if (player > 0) { // player X
+      bestOutcome = bestOutcomes.max();
+    } else {
+      bestOutcome = bestOutcomes.min();
+    }
+    return bestOutcome;
+  }
+}
+
+IntList getBestOutcomesArray(int[] theGameState, int player) {
+  IntList bestOutcomes = new IntList();
+  IntList openCells = getOpenCells(theGameState);
+  
+  for (int i = 0; i < openCells.size(); i++) {
+      // for each possible move, create newGameState
       int[] newGameState = new int[9];
       arrayCopy(theGameState, newGameState);
       int testCell = openCells.get(i);
@@ -103,15 +139,7 @@ int getBestOutcome(int[] theGameState, int player) {
       }
       bestOutcomes.append(best);
     }
-
-    // return the best of the outcomes from the IntList
-    if (player > 0) { // player X
-      bestOutcome = bestOutcomes.max();
-    } else {
-      bestOutcome = bestOutcomes.min();
-    }
-    return bestOutcome;
-  }
+  return bestOutcomes;
 }
 
 IntList getOpenCells(int[] theGameState) {
