@@ -9,7 +9,8 @@ void takeTurnAI() {
   
     if (success) {
       if (autoEndTurn) endTurn();
-    } else { // logic error resulting in failed cell placement
+    } else { 
+      // logic error resulting in failed cell placement
       println("Error: AI logic fail.");
     }
   }
@@ -21,8 +22,7 @@ int chooseBestCell(int[] theGameState, int player) {
   // see which cells are still available
   IntList openCells = getOpenCells(theGameState);
   if (openCells.size() > 8) {
-    // hard coded to choose center tile if making very first move
-//     return 4; 
+    // choose randomly if making very first move
      return int(random(9));
   }
   // get best outcomes for each available cell

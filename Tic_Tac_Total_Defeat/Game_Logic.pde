@@ -18,8 +18,10 @@ void setupGame() {
 //______________________________________________________
 boolean placeMarkInCell(int cell) {
   if (debug) println("Placing...");
-  if (cell > -1 && cell < 9) { // check for valid cell number
-    if (gameState[cell] == 0) { // cell not yet taken
+  if (cell > -1 && cell < 9) { 
+    // check for valid cell number
+    if (gameState[cell] == 0) { 
+      // cell not yet taken
       gameState[cell] = currentPlayer;
       isTurnTaken = true;
       turnsTaken++;
@@ -33,7 +35,8 @@ boolean placeMarkInCell(int cell) {
 }
 
 void endTurn() {
-  if (turnsTaken > 4) { // no possible win unless player 1 has taken at least 3 turns
+  if (turnsTaken > 4) { 
+    // no possible win unless player 1 has taken at least 3 turns
     gameOverCheck();
   }
   if (!isGameOver) {
@@ -47,7 +50,8 @@ void gameOverCheck() {
   if (madeWinningMove(gameState, currentPlayer)) {
     theWinner = currentPlayerString;
     isGameOver = true;
-  } else if (turnsTaken > 8 ) { // board full, tie game
+  } else if (turnsTaken > 8 ) { 
+    // board full, tie game
     isGameOver = true;
   }
 }
