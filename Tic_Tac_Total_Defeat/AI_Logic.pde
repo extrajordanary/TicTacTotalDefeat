@@ -54,7 +54,7 @@ int getBestOutcome(int[] theGameState, int player) {
     int[] newGameState = getPossibleGameState(theGameState, testCell, player);
 
     if (madeWinningMove(newGameState, player)) {
-      bestOutcome = 1 * player;
+      bestOutcome = 10 * player;
     } else {
       bestOutcome = 0;
     }
