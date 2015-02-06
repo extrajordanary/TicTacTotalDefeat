@@ -9,7 +9,7 @@ boolean debug = true;
 boolean debugGameState = false;
 
 boolean autoEndTurn = true;
-boolean playAgainstAI = false;
+boolean playAgainstAI = true;
 
 boolean isGameSetup;
 float boardInset = 80;
