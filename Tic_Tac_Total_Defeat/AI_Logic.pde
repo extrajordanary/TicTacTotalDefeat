@@ -20,11 +20,18 @@ int chooseBestCell(int[] theGameState, int player) {
   int bestCell;
   // see which cells are still available
   IntList openCells = getOpenCells(theGameState);
+  if (openCells.size() > 8) {
+    // hard coded to choose center tile if making very first move
+//     return 4; 
+     return int(random(9));
+  }
   // get best outcomes for each available cell
-  IntList bestOutcomes = getBestOutcomesArray(theGameState, player);
+  IntList bestOutcomes = getBestOutcomesArray(theGameState, player, 0);
+  if (debug) printArray(bestOutcomes);
+  
   // get the best of the outcomes from the IntList
   int bestOutcome = bestOutcomeInArray(bestOutcomes, player);
-
+  
   // get index of cell with best outcome
   bestCell = openCells.get(0);
   for (int i = 0; i < bestOutcomes.size(); i ++) {
@@ -36,7 +43,7 @@ int chooseBestCell(int[] theGameState, int player) {
   return bestCell;
 }
 
-int getBestOutcome(int[] theGameState, int player) {
+int getBestOutcome(int[] theGameState, int player, int depth) {
   // return value representing best game outcome for the player
   int bestOutcome;
 
@@ -54,14 +61,14 @@ int getBestOutcome(int[] theGameState, int player) {
     int[] newGameState = getPossibleGameState(theGameState, testCell, player);
 
     if (madeWinningMove(newGameState, player)) {
-      bestOutcome = 10 * player;
+      bestOutcome = (10 * player) - (depth * player);
     } else {
       bestOutcome = 0;
     }
     
   } else {
     // else, get best outcome for each possible move
-    IntList bestOutcomes = getBestOutcomesArray(theGameState, player);
+    IntList bestOutcomes = getBestOutcomesArray(theGameState, player, depth);
     
     // return the best of the outcomes
     bestOutcome = bestOutcomeInArray(bestOutcomes, player);
@@ -69,7 +76,7 @@ int getBestOutcome(int[] theGameState, int player) {
   return bestOutcome;
 }
 
-IntList getBestOutcomesArray(int[] theGameState, int player) {
+IntList getBestOutcomesArray(int[] theGameState, int player, int depth) {
   IntList bestOutcomes = new IntList();
   IntList openCells = getOpenCells(theGameState);
   
@@ -82,14 +89,16 @@ IntList getBestOutcomesArray(int[] theGameState, int player) {
       int best;
       if (madeWinningMove(newGameState, player)) {
         // if win, set outcome value to add to array
-        best = 1 * player;
+        best = (10 * player) - (depth * player);
       } else {
         // recursive call, passed to next player
         int nextPlayer = player * -1;
-        best = getBestOutcome(newGameState, nextPlayer);
+        best = getBestOutcome(newGameState, nextPlayer, depth - 1);
       }
       bestOutcomes.append(best);
     }
+  if (debug) println(depth);
+  if (debug) printArray(bestOutcomes);
   return bestOutcomes;
 }
 
