@@ -16,12 +16,16 @@ public class Tic_Tac_Total_Defeat extends PApplet {
 
 /*
  * Tic Tac Total Defeat
- * (Jordan Arnesen, 2015 February 03)
+ * (Jordan Arnesen, 2015 February 05)
  *  ---------------------------- 
  */
 
 // VARIABLES
-boolean debug = false;
+boolean debug = true;
+boolean debugGameState = false;
+
+boolean autoEndTurn = true;
+boolean playAgainstAI = true;
 
 boolean isGameSetup;
 float boardInset = 80;
@@ -37,7 +41,12 @@ String currentPlayerString;
 int turnsTaken;
 boolean isTurnTaken;
 
+int turnDelay = 1000; // milliseconds
+int turnStart;
+
+
 // MAIN FUNCTIONS
+//______________________________________________________
 public void setup() {
   size(500, 500);
 
@@ -54,25 +63,18 @@ public void draw() {
   }
   drawBoard();
   showGameStatus();
-}
 
-// START OR RESET GAME
-public void setupGame() {   
-  // set up array to store game state
-  for (int i = 0; i < 9; i++) {
-    gameState[i] = 0;
+  // If it's the AI's turn make a move
+  if (playAgainstAI && !isGameOver && currentPlayer < 0) { 
+    if (millis() - turnStart > turnDelay) {
+      takeTurnAI();
+    }
   }
-  currentPlayer = 1;
-  isTurnTaken = false;
-  turnsTaken = 0;
-  isGameSetup = true;
-  isGameOver = false;
-  theWinner = "Tie - no one";
 }
 
-// DISPLAY INFO
+// DISPLAY FUNCTIONS
+//______________________________________________________
 public void drawBoard() {
-  // draw board
   int i = 0;
   for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
@@ -98,7 +100,7 @@ public void drawBoard() {
         if  (gameState[i] > 0) { // player X
           fill(255, 0, 0);
           text("X", xPos + cellSize/2, yPos + cellSize/2);
-        } else { // player 0
+        } else { // player O
           fill(0, 0, 255);
           text("O", xPos + cellSize/2, yPos + cellSize/2);
         }
@@ -110,83 +112,31 @@ public void drawBoard() {
 
 public void showGameStatus() {
   textSize(20);
-  fill(0);
   textAlign(LEFT, TOP);
 
   if (isGameOver) {
     // show who won and game reset instructions
+    fill(0);
     text(theWinner+ " wins! To play again, press P.", 20, 15);
   } else {
     // show whose turn it is
     if (currentPlayer > 0) {
+      fill(255, 0, 0);
       currentPlayerString = "X";
     } else {
+      fill(0, 0, 255);
       currentPlayerString = "O";
     }
     if (!isTurnTaken) {
       text(currentPlayerString+"'s turn", 20, 15);
-    } else {
+    } else { // not used when using automatic end turn
       text("Press Spacebar to change players.", 20, 15);
     }
   }
 }
 
-// GAME LOGIC
-public void placeMarkInCell(int cell) {
-  if (cell > -1 && cell < 9) { 
-    if (gameState[cell] == 0) { // cell not yet taken
-      gameState[cell] = currentPlayer;
-      isTurnTaken = true;
-      turnsTaken++;
-
-      if (turnsTaken > 4) { // no possible win unless player 1 has taken at least 3 turns
-        gameOverCheck();
-      }
-      if (!isGameOver) endTurn();
-    }
-  }
-
-  if (debug) {
-    printArray(gameState);
-  }
-}
-
-public void endTurn() {
-  currentPlayer = currentPlayer * -1;
-  isTurnTaken = false;
-}
-
-public void gameOverCheck() {
-  // check possible winning combos
-  if (gameState[4]*currentPlayer == 1) { 
-    if ((gameState[0]*currentPlayer == 1 && gameState[8]*currentPlayer == 1) ||
-      (gameState[1]*currentPlayer == 1 && gameState[7]*currentPlayer == 1) ||
-      (gameState[2]*currentPlayer == 1 && gameState[6]*currentPlayer == 1) ||
-      (gameState[3]*currentPlayer == 1 && gameState[5]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
-    }
-  } 
-  if (gameState[0]*currentPlayer == 1) {
-    if ((gameState[1]*currentPlayer == 1 && gameState[2]*currentPlayer == 1) ||
-      (gameState[3]*currentPlayer == 1 && gameState[6]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
-    }
-  } 
-  if (gameState[8]*currentPlayer == 1) {
-    if ((gameState[2]*currentPlayer == 1 && gameState[5]*currentPlayer == 1) ||
-      (gameState[6]*currentPlayer == 1 && gameState[7]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
-    }
-  } 
-  if (turnsTaken > 8) { // board full, tie game
-    isGameOver = true;
-  }
-}
-
 // PLAYER INPUTS
+//______________________________________________________
 public void keyPressed() {
   if (isGameOver) {
     // can only start new game when prev game ends
@@ -202,14 +152,223 @@ public void keyPressed() {
     // player must make a move
     if (key == 'q') { // for testing only
       isGameOver = true;
+    } else if (key == 'a') {
+      takeTurnAI();
     } else {
       int cell = cellLetters.indexOf(key); 
-      if (debug) println(cell);
-      
+      if (debug) println("Human chooses cell "+cell);
+
       // -1 if key pressed was not in cellLetters
-      if (cell > -1) placeMarkInCell(cell);
+      if (cell > -1) {
+        placeMarkInCell(cell);
+        if (autoEndTurn && isTurnTaken) endTurn();
+      }
     }
   }
+}
+
+// AI LOGIC
+//______________________________________________________
+public void takeTurnAI() {
+  if (!isTurnTaken) {
+    int cell = chooseBestCell(gameState, currentPlayer);
+    if (debug) println("AI chooses cell "+cell);
+  
+    boolean success = placeMarkInCell(cell);
+  
+    if (success) {
+      if (autoEndTurn) endTurn();
+    } else { // logic error resulting in failed cell placement
+      println("Error: AI logic fail.");
+    }
+  }
+}
+
+public int chooseBestCell(int[] theGameState, int player) {
+  // returns index of best cell's position in gameState array
+  int bestCell;
+  // see which cells are still available
+  IntList openCells = getOpenCells(theGameState);
+  // get best outcomes for each available cell
+  IntList bestOutcomes = getBestOutcomesArray(theGameState, player);
+  // get the best of the outcomes from the IntList
+  int bestOutcome = bestOutcomeInArray(bestOutcomes, player);
+
+  // get index of cell with best outcome
+  bestCell = openCells.get(0);
+  for (int i = 0; i < bestOutcomes.size(); i ++) {
+    if (bestOutcomes.get(i) == bestOutcome) {
+      bestCell = openCells.get(i);
+    }
+  }
+
+  return bestCell;
+}
+
+public int getBestOutcome(int[] theGameState, int player) {
+  // return value representing best game outcome for the player
+  int bestOutcome;
+
+  // see which cells are still available
+  IntList openCells = getOpenCells(theGameState);
+  
+  if (openCells.size() < 1) {
+    // no moves to make, so must be a tie
+    if (debug) println("getBestOutcome called on gameState with no open cells");
+    bestOutcome = 0;
+    
+  } else if (openCells.size() == 1) {
+    // if only one option, return value for win or tie
+    int testCell = openCells.get(0);
+    int[] newGameState = getPossibleGameState(theGameState, testCell, player);
+
+    if (madeWinningMove(newGameState, player)) {
+      bestOutcome = 1 * player;
+    } else {
+      bestOutcome = 0;
+    }
+    
+  } else {
+    // else, get best outcome for each possible move
+    IntList bestOutcomes = getBestOutcomesArray(theGameState, player);
+    
+    // return the best of the outcomes
+    bestOutcome = bestOutcomeInArray(bestOutcomes, player);
+  }
+  return bestOutcome;
+}
+
+public IntList getBestOutcomesArray(int[] theGameState, int player) {
+  IntList bestOutcomes = new IntList();
+  IntList openCells = getOpenCells(theGameState);
+  
+  for (int i = 0; i < openCells.size(); i++) {
+      // for each possible move, create newGameState
+      int testCell = openCells.get(i);
+      int[] newGameState = getPossibleGameState(theGameState, testCell, player);
+
+      // check if newGameState is win condition
+      int best;
+      if (madeWinningMove(newGameState, player)) {
+        // if win, set outcome value to add to array
+        best = 1 * player;
+      } else {
+        // recursive call, passed to next player
+        int nextPlayer = player * -1;
+        best = getBestOutcome(newGameState, nextPlayer);
+      }
+      bestOutcomes.append(best);
+    }
+  return bestOutcomes;
+}
+
+public int bestOutcomeInArray(IntList array, int player) {
+  // return the best of the outcomes from the IntList
+  if (player > 0) { // player X
+    return array.max();
+  } else {
+    return array.min();
+  }
+}
+
+public IntList getOpenCells(int[] theGameState) {
+  IntList openCells = new IntList();
+  for (int i = 0; i < theGameState.length; i++) {
+    if (theGameState[i] == 0) {
+      openCells.append(i);
+    }
+  }
+  if (debug) {
+    println("Open cells: " + openCells.size());
+  }
+  return openCells;
+}
+
+public int[] getPossibleGameState(int[] theGameState, int cell, int player) {
+ // returns newGameState for player claiming cell
+  int[] possGameState = new int[9];
+  arrayCopy(theGameState, possGameState);
+  possGameState[cell] = player;
+  
+  return possGameState;
+}
+// START OR RESET GAME
+//______________________________________________________
+public void setupGame() {   
+  // set up array to store game state
+  for (int i = 0; i < 9; i++) {
+    gameState[i] = 0;
+  }
+  currentPlayer = 1;
+  isTurnTaken = false;
+  turnsTaken = 0;
+  isGameSetup = true;
+  isGameOver = false;
+  theWinner = "Tie - no one"; // default end game message fragment
+  turnStart = millis();
+}
+
+// GAME LOGIC
+//______________________________________________________
+public boolean placeMarkInCell(int cell) {
+  if (debug) println("Placing...");
+  if (cell > -1 && cell < 9) { // check for valid cell number
+    if (gameState[cell] == 0) { // cell not yet taken
+      gameState[cell] = currentPlayer;
+      isTurnTaken = true;
+      turnsTaken++;
+    }
+  }
+
+  if (debugGameState) {
+    printArray(gameState);
+  }
+  return isTurnTaken;
+}
+
+public void endTurn() {
+  if (turnsTaken > 4) { // no possible win unless player 1 has taken at least 3 turns
+    gameOverCheck();
+  }
+  if (!isGameOver) {
+    currentPlayer = currentPlayer * -1;
+    isTurnTaken = false;
+    turnStart = millis();
+  }
+}
+
+public void gameOverCheck() {
+  if (madeWinningMove(gameState, currentPlayer)) {
+    theWinner = currentPlayerString;
+    isGameOver = true;
+  } else if (turnsTaken > 8 ) { // board full, tie game
+    isGameOver = true;
+  }
+}
+
+public boolean madeWinningMove(int[] theGameState, int player) {
+  // check all possible winning combos
+  if (theGameState[4]*player == 1) { 
+    if ((theGameState[0]*player == 1 && theGameState[8]*player == 1) ||
+      (theGameState[1]*player == 1 && theGameState[7]*player == 1) ||
+      (theGameState[2]*player == 1 && theGameState[6]*player == 1) ||
+      (theGameState[3]*player == 1 && theGameState[5]*player == 1)) {
+      return true;
+    }
+  } 
+  if (theGameState[0]*player == 1) {
+    if ((theGameState[1]*player == 1 && theGameState[2]*player == 1) ||
+      (theGameState[3]*player == 1 && theGameState[6]*player == 1)) {
+      return true;
+    }
+  } 
+  if (theGameState[8]*player == 1) {
+    if ((theGameState[2]*player == 1 && theGameState[5]*player == 1) ||
+      (theGameState[6]*player == 1 && theGameState[7]*player == 1)) {
+      return true;
+    }
+  }
+  return false;
 }
 
   static public void main(String[] passedArgs) {

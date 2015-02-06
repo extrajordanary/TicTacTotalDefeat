@@ -1,11 +1,15 @@
 /*
  * Tic Tac Total Defeat
- * (Jordan Arnesen, 2015 February 03)
+ * (Jordan Arnesen, 2015 February 05)
  *  ---------------------------- 
  */
 
 // VARIABLES
-boolean debug = false;
+boolean debug = true;
+boolean debugGameState = false;
+
+boolean autoEndTurn = true;
+boolean playAgainstAI = true;
 
 boolean isGameSetup;
 float boardInset = 80;
@@ -21,7 +25,12 @@ String currentPlayerString;
 int turnsTaken;
 boolean isTurnTaken;
 
+int turnDelay = 1000; // milliseconds
+int turnStart;
+
+
 // MAIN FUNCTIONS
+//______________________________________________________
 void setup() {
   size(500, 500);
 
@@ -38,25 +47,18 @@ void draw() {
   }
   drawBoard();
   showGameStatus();
-}
 
-// START OR RESET GAME
-void setupGame() {   
-  // set up array to store game state
-  for (int i = 0; i < 9; i++) {
-    gameState[i] = 0;
+  // If it's the AI's turn make a move
+  if (playAgainstAI && !isGameOver && currentPlayer < 0) { 
+    if (millis() - turnStart > turnDelay) {
+      takeTurnAI();
+    }
   }
-  currentPlayer = 1;
-  isTurnTaken = false;
-  turnsTaken = 0;
-  isGameSetup = true;
-  isGameOver = false;
-  theWinner = "Tie - no one";
 }
 
-// DISPLAY INFO
+// DISPLAY FUNCTIONS
+//______________________________________________________
 void drawBoard() {
-  // draw board
   int i = 0;
   for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
@@ -82,7 +84,7 @@ void drawBoard() {
         if  (gameState[i] > 0) { // player X
           fill(255, 0, 0);
           text("X", xPos + cellSize/2, yPos + cellSize/2);
-        } else { // player 0
+        } else { // player O
           fill(0, 0, 255);
           text("O", xPos + cellSize/2, yPos + cellSize/2);
         }
@@ -94,83 +96,31 @@ void drawBoard() {
 
 void showGameStatus() {
   textSize(20);
-  fill(0);
   textAlign(LEFT, TOP);
 
   if (isGameOver) {
     // show who won and game reset instructions
+    fill(0);
     text(theWinner+ " wins! To play again, press P.", 20, 15);
   } else {
     // show whose turn it is
     if (currentPlayer > 0) {
+      fill(255, 0, 0);
       currentPlayerString = "X";
     } else {
+      fill(0, 0, 255);
       currentPlayerString = "O";
     }
     if (!isTurnTaken) {
       text(currentPlayerString+"'s turn", 20, 15);
-    } else {
+    } else { // not used when using automatic end turn
       text("Press Spacebar to change players.", 20, 15);
     }
   }
 }
 
-// GAME LOGIC
-void placeMarkInCell(int cell) {
-  if (cell > -1 && cell < 9) { 
-    if (gameState[cell] == 0) { // cell not yet taken
-      gameState[cell] = currentPlayer;
-      isTurnTaken = true;
-      turnsTaken++;
-
-      if (turnsTaken > 4) { // no possible win unless player 1 has taken at least 3 turns
-        gameOverCheck();
-      }
-      if (!isGameOver) endTurn();
-    }
-  }
-
-  if (debug) {
-    printArray(gameState);
-  }
-}
-
-void endTurn() {
-  currentPlayer = currentPlayer * -1;
-  isTurnTaken = false;
-}
-
-void gameOverCheck() {
-  // check possible winning combos
-  if (gameState[4]*currentPlayer == 1) { 
-    if ((gameState[0]*currentPlayer == 1 && gameState[8]*currentPlayer == 1) ||
-      (gameState[1]*currentPlayer == 1 && gameState[7]*currentPlayer == 1) ||
-      (gameState[2]*currentPlayer == 1 && gameState[6]*currentPlayer == 1) ||
-      (gameState[3]*currentPlayer == 1 && gameState[5]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
-    }
-  } 
-  if (gameState[0]*currentPlayer == 1) {
-    if ((gameState[1]*currentPlayer == 1 && gameState[2]*currentPlayer == 1) ||
-      (gameState[3]*currentPlayer == 1 && gameState[6]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
-    }
-  } 
-  if (gameState[8]*currentPlayer == 1) {
-    if ((gameState[2]*currentPlayer == 1 && gameState[5]*currentPlayer == 1) ||
-      (gameState[6]*currentPlayer == 1 && gameState[7]*currentPlayer == 1)) {
-      theWinner = currentPlayerString;
-      isGameOver = true;
-    }
-  } 
-  if (turnsTaken > 8) { // board full, tie game
-    isGameOver = true;
-  }
-}
-
 // PLAYER INPUTS
+//______________________________________________________
 void keyPressed() {
   if (isGameOver) {
     // can only start new game when prev game ends
@@ -186,12 +136,17 @@ void keyPressed() {
     // player must make a move
     if (key == 'q') { // for testing only
       isGameOver = true;
+    } else if (key == 'a') {
+      takeTurnAI();
     } else {
       int cell = cellLetters.indexOf(key); 
-      if (debug) println(cell);
-      
+      if (debug) println("Human chooses cell "+cell);
+
       // -1 if key pressed was not in cellLetters
-      if (cell > -1) placeMarkInCell(cell);
+      if (cell > -1) {
+        placeMarkInCell(cell);
+        if (autoEndTurn && isTurnTaken) endTurn();
+      }
     }
   }
 }
